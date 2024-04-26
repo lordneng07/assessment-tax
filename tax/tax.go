@@ -1,34 +1,44 @@
 package tax
 
-func Calculate(totalIncome float64, wht float64, allowance float64) float64 {
-	return calculateTax(calculateIncome(totalIncome, allowance), wht)
+type Tax struct {
+	income    float64
+	wht       float64
+	allowance float64
 }
 
-func calculateIncome(t float64, a float64) float64 {
-	return t - 60000 - a
+func NewTax(income float64, wht float64, allowance float64) Tax {
+	return Tax{
+		income:    income,
+		wht:       wht,
+		allowance: allowance,
+	}
 }
 
-func calculateTax(i float64, wht float64) float64 {
+func (t Tax) Calculate() float64 {
 
-	if i >= 150001 && i <= 500000 {
-		return calculateTaxLevel(i, 150000.0, 0.10) - wht
+	if t.netIncome() >= 150001 && t.netIncome() <= 500000 {
+		return t.level(150000.0, 0.10) - t.wht
 	}
 
-	if i >= 500001 && i <= 1000000 {
-		return calculateTaxLevel(i, 500000.0, 0.15) - wht
+	if t.netIncome() >= 500001 && t.netIncome() <= 1000000 {
+		return t.level(500000.0, 0.15) - t.wht
 	}
 
-	if i >= 1000001 && i <= 2000000 {
-		return calculateTaxLevel(i, 1000000.0, 0.20) - wht
+	if t.netIncome() >= 1000001 && t.netIncome() <= 2000000 {
+		return t.level(1000000.0, 0.20) - t.wht
 	}
 
-	if i > 2000000 {
-		return calculateTaxLevel(i, 0, 0.35) - wht
+	if t.netIncome() > 2000000 {
+		return t.level(0, 0.35) - t.wht
 	}
 
-	return 0 - wht
+	return 0 - t.wht
 }
 
-func calculateTaxLevel(incomeNet float64, maxPreRate float64, ratio float64) float64 {
-	return (incomeNet - maxPreRate) * ratio
+func (t Tax) netIncome() float64 {
+	return t.income - 60000 - t.allowance
+}
+
+func (t Tax) level(mpr float64, r float64) float64 {
+	return (t.netIncome() - mpr) * r
 }
