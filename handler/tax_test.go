@@ -12,21 +12,55 @@ import (
 )
 
 func TestTaxCalculate(t *testing.T) {
-	// Setup
-	var tr TaxRequest
-	body := bytes.NewBufferString(`{
+
+	t.Run("validate allowanceType is not correct", func(t *testing.T) {
+		var verr Err
+
+		reqBody := bytes.NewBufferString(`{
+			"totalIncome": 500000.0,
+			"wht": 0.0,
+			"allowances": [
+			  {
+				"allowanceType": "a",
+				"amount": 0.0
+			  }
+			]}`)
+
+		res := request(http.MethodPost, uri("api/tax/calculations"), reqBody)
+
+		err := res.Decode(&verr)
+		if err != nil {
+			t.Fatal("cannot calulate tax", err)
+		}
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, verr.Message, "allowanceType is not correct")
+		assert.EqualValues(t, http.StatusBadRequest, res.StatusCode)
+
+	})
+
+	t.Run("As user, I want to calculate my tax should be 29000", func(t *testing.T) {
+		var re TaxResponse
+		body := bytes.NewBufferString(`{
 		"totalIncome": 500000.0,
-		"wht": 0.0
-	  }`)
+		"wht": 0.0,
+		"allowances": [
+		  {
+			"allowanceType": "donation",
+			"amount": 0.0
+		  }
+		]}`)
 
-	res := request(http.MethodPost, uri("api/tax/calculations"), body)
-	err := res.Decode(&tr)
-	if err != nil {
-		t.Fatal("cannot calulate tax", err)
-	}
+		res := request(http.MethodPost, uri("api/tax/calculations"), body)
+		err := res.Decode(&re)
+		if err != nil {
+			t.Fatal("cannot calulate tax", err)
+		}
 
-	assert.Nil(t, err)
-	assert.EqualValues(t, http.StatusOK, res.StatusCode)
+		assert.Nil(t, err)
+		assert.EqualValues(t, re.Tax, 29000)
+		assert.EqualValues(t, http.StatusOK, res.StatusCode)
+	})
 }
 
 func uri(paths ...string) string {

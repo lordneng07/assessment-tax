@@ -2,8 +2,10 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo"
+	service "github.com/lordneng07/assessment-tax/service/tax"
 )
 
 type (
@@ -21,7 +23,8 @@ type (
 	}
 
 	TaxResponse struct {
-		Tax float64 `json:"tax"`
+		Tax    float64 `json:"tax"`
+		Refund float64 `json:"taxRefund"`
 	}
 
 	AllowanceType struct {
@@ -37,5 +40,44 @@ func (h taxHendler) Calculation(c echo.Context) (err error) {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
-	return c.JSON(http.StatusOK, req)
+	isError, verr := req.validate()
+
+	if isError {
+		return c.JSON(http.StatusBadRequest, verr)
+	}
+
+	return c.JSON(http.StatusOK, NewTaxResponse(req))
+}
+
+func NewTaxResponse(tr TaxRequest) TaxResponse {
+
+	return TaxResponse{
+		Tax:    service.NewTaxService(tr.Income, tr.Wht, tr.Allowance()).TaxNet(),
+		Refund: service.NewTaxService(tr.Income, tr.Wht, tr.Allowance()).Refund(),
+	}
+}
+
+func (tr TaxRequest) validate() (bool, Err) {
+
+	for _, al := range tr.Allowances {
+		if !strings.Contains(al.AllowanceType, "donation") && !strings.Contains(al.AllowanceType, "k-receipt") {
+			return true, Err{
+				Message: "allowanceType is not correct",
+			}
+		}
+	}
+
+	return false, Err{
+		Message: "Success",
+	}
+}
+
+func (tr TaxRequest) Allowance() float64 {
+	alw := 0.0
+	for _, al := range tr.Allowances {
+
+		alw += al.Amount
+	}
+
+	return alw
 }
