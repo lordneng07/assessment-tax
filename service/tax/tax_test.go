@@ -1,4 +1,4 @@
-package tax
+package service
 
 import (
 	"testing"
@@ -82,7 +82,7 @@ func TestCalculate(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			tn := NewTax(tt.income, tt.wht, tt.allowance).Calculate()
+			tn := NewTaxService(tt.income, tt.wht, tt.allowance).Calculate()
 
 			if tn != tt.tax {
 				t.Errorf("got = %.2f, want = %.2f", tn, tt.tax)

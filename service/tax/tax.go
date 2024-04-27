@@ -1,20 +1,26 @@
-package tax
+package service
 
-type Tax struct {
-	income    float64
-	wht       float64
-	allowance float64
-}
+type (
+	TaxService interface {
+		Calculate()
+	}
 
-func NewTax(income float64, wht float64, allowance float64) Tax {
-	return Tax{
+	taxService struct {
+		income    float64
+		wht       float64
+		allowance float64
+	}
+)
+
+func NewTaxService(income float64, wht float64, allowance float64) taxService {
+	return taxService{
 		income:    income,
 		wht:       wht,
 		allowance: allowance,
 	}
 }
 
-func (t Tax) Calculate() float64 {
+func (t taxService) Calculate() float64 {
 
 	if t.netIncome() >= 150001 && t.netIncome() <= 500000 {
 		return t.level(150000.0, 0.10) - t.wht
@@ -35,10 +41,10 @@ func (t Tax) Calculate() float64 {
 	return 0 - t.wht
 }
 
-func (t Tax) netIncome() float64 {
+func (t taxService) netIncome() float64 {
 	return t.income - 60000 - t.allowance
 }
 
-func (t Tax) level(mpr float64, r float64) float64 {
+func (t taxService) level(mpr float64, r float64) float64 {
 	return (t.netIncome() - mpr) * r
 }
