@@ -29,11 +29,11 @@ func TestTaxCalculate(t *testing.T) {
 			  }
 			]}`)
 
-		res := request(http.MethodPost, uri("api/tax/calculations"), reqBody)
+		res := request(http.MethodPost, uri("tax/calculations"), reqBody)
 
 		err := res.Decode(&verr)
 		if err != nil {
-			t.Fatal("cannot calulate tax", err)
+			t.Fatal("cannot parse tax request", err)
 		}
 
 		assert.Nil(t, err)
@@ -42,7 +42,7 @@ func TestTaxCalculate(t *testing.T) {
 
 	})
 
-	t.Run("As user, I want to calculate my tax should be 29000", func(t *testing.T) {
+	t.Run("total income 50000, who = 0, allowances = 0 tax should be 29000", func(t *testing.T) {
 		var re TaxResponse
 		body := bytes.NewBufferString(`{
 		"totalIncome": 500000.0,
@@ -54,7 +54,7 @@ func TestTaxCalculate(t *testing.T) {
 		  }
 		]}`)
 
-		res := request(http.MethodPost, uri("api/tax/calculations"), body)
+		res := request(http.MethodPost, uri("tax/calculations"), body)
 		err := res.Decode(&re)
 		if err != nil {
 			t.Fatal("cannot calulate tax", err)
@@ -79,7 +79,6 @@ func uri(paths ...string) string {
 func request(method, url string, body io.Reader) *Response {
 	req, _ := http.NewRequest(method, url, body)
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Basic YWRtaW5UYXg6YWRtaW4h")
 	client := http.Client{}
 	res, err := client.Do(req)
 	return &Response{res, err}
