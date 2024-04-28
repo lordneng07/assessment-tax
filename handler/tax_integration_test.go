@@ -89,7 +89,7 @@ func TestTaxCalculate(t *testing.T) {
 		assert.EqualValues(t, http.StatusOK, res.StatusCode)
 	})
 
-	t.Run("total income = 500000, donation = 200000 should be 19000", func(t *testing.T) {
+	t.Run("cal with max donation total income = 500000, wht = 0, donation = 200000 tax should be 19000", func(t *testing.T) {
 		var re TaxResponse
 		body := bytes.NewBufferString(`{
 			"totalIncome": 500000.0,
@@ -102,7 +102,7 @@ func TestTaxCalculate(t *testing.T) {
 			]
 		  }`)
 
-		res := request(http.MethodPost, uri("api/tax/calculations"), body)
+		res := request(http.MethodPost, uri("tax/calculations"), body)
 		err := res.Decode(&re)
 		if err != nil {
 			t.Fatal("cannot calulate tax", err)
