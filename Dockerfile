@@ -16,4 +16,6 @@ RUN go build -o ./out/go-app .
 FROM alpine:3.19.1
 COPY --from=build-base /app/out/go-app /app/go-app
 
+EXPOSE 8080
+
 CMD ["/app/go-app"]

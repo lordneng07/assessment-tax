@@ -5,11 +5,13 @@ services:
       context: .
       dockerfile: ./Dockerfile
       args:
-        PORT: 8080
+        PORT: ${PORT}
     ports:
-      - "8080:8080"
+      - "${PORT}:${PORT}"
     volumes:
       - $PWD:/go/src/target
+    env_file:
+      - ./.env
       
 
   # postgres:
