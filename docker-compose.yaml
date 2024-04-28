@@ -1,6 +1,9 @@
 services:
   echo-server:
     container_name: "echo-server"
+    environment:
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     build:
       context: .
       dockerfile: ./Dockerfile

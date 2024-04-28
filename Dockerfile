@@ -1,3 +1,5 @@
+ARG PORT=8080
+
 FROM golang:1.21.9-alpine as build-base
 
 WORKDIR /app
@@ -16,6 +18,9 @@ RUN go build -o ./out/go-app .
 FROM alpine:3.19.1
 COPY --from=build-base /app/out/go-app /app/go-app
 
-EXPOSE 8080
+ARG PORT
+ENV PORT=$PORT
+
+EXPOSE $PORT
 
 CMD ["/app/go-app"]
