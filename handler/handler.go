@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 )
 
 type Handler struct {
@@ -23,10 +22,8 @@ func New() *Handler {
 }
 
 func SetApi(e *echo.Echo, h *Handler) {
-	g := e.Group("/api/")
-	g.Use(middleware.BasicAuth(authen))
 
-	g.POST("tax/calculations", h.TaxHandler.Calculation)
+	e.POST("tax/calculations", h.TaxHandler.Calculation)
 }
 
 func Echo() *echo.Echo {
