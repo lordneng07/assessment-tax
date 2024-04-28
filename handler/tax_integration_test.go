@@ -88,6 +88,30 @@ func TestTaxCalculate(t *testing.T) {
 		assert.EqualValues(t, re.Tax, 4000)
 		assert.EqualValues(t, http.StatusOK, res.StatusCode)
 	})
+
+	t.Run("total income = 500000, donation = 200000 should be 19000", func(t *testing.T) {
+		var re TaxResponse
+		body := bytes.NewBufferString(`{
+			"totalIncome": 500000.0,
+			"wht": 0.0,
+			"allowances": [
+			  {
+				"allowanceType": "donation",
+				"amount": 200000.0
+			  }
+			]
+		  }`)
+
+		res := request(http.MethodPost, uri("api/tax/calculations"), body)
+		err := res.Decode(&re)
+		if err != nil {
+			t.Fatal("cannot calulate tax", err)
+		}
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, re.Tax, 19000)
+		assert.EqualValues(t, http.StatusOK, res.StatusCode)
+	})
 }
 
 func uri(paths ...string) string {

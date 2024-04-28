@@ -13,6 +13,10 @@ type (
 		Calculation(c echo.Context) error
 	}
 
+	Calculator interface {
+		Calculate() float64
+	}
+
 	taxHendler struct {
 	}
 
@@ -30,6 +34,10 @@ type (
 	AllowanceType struct {
 		AllowanceType string  `json:"allowanceType"`
 		Amount        float64 `json:"amount"`
+	}
+
+	Donation struct {
+		Calculator
 	}
 )
 
@@ -73,11 +81,22 @@ func (tr TaxRequest) validate() (bool, Err) {
 }
 
 func (tr TaxRequest) Allowance() float64 {
-	alw := 0.0
+
+	return tr.donation()
+}
+
+func (tr TaxRequest) donation() float64 {
+	donate := 0.0
 	for _, al := range tr.Allowances {
 
-		alw += al.Amount
+		if strings.Contains(al.AllowanceType, "donation") {
+			donate += al.Amount
+		}
 	}
 
-	return alw
+	if donate > 100000 {
+		return 100000
+	}
+
+	return donate
 }
