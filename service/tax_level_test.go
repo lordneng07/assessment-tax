@@ -76,10 +76,11 @@ func TestTaxNet(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			tn := NewTaxService(tt.income, tt.wht, tt.allowance).TaxNet()
 
-			if tn != tt.tax {
-				t.Errorf("got = %.2f, want = %.2f", tn, tt.tax)
+			tn := New().TaxLevel.NewTax(tt.income, tt.wht, tt.allowance)
+
+			if tn.Tax != tt.tax {
+				t.Errorf("got = %.2f, want = %.2f", tn.Tax, tt.tax)
 			}
 		})
 	}
@@ -146,10 +147,10 @@ func TestRefund(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			tn := NewTaxService(tt.income, tt.wht, tt.allowance).Refund()
+			tl := New().TaxLevel.NewTax(tt.income, tt.wht, tt.allowance)
 
-			if tn != tt.refund {
-				t.Errorf("got = %.2f, want = %.2f", tn, tt.refund)
+			if *tl.Refund != &tt.refund {
+				t.Errorf("refund got = %.2f, want = %.2f", *tl.Refund, tt.refund)
 			}
 		})
 	}

@@ -17,8 +17,7 @@ import (
 func TestTaxCalculate(t *testing.T) {
 
 	t.Run("validate allowanceType is not correct", func(t *testing.T) {
-		var verr Err
-
+		var er Err
 		reqBody := bytes.NewBufferString(`{
 			"totalIncome": 500000.0,
 			"wht": 0.0,
@@ -31,13 +30,13 @@ func TestTaxCalculate(t *testing.T) {
 
 		res := request(http.MethodPost, uri("tax/calculations"), reqBody)
 
-		err := res.Decode(&verr)
+		err := res.Decode(&er)
 		if err != nil {
 			t.Fatal("cannot parse tax request", err)
 		}
 
 		assert.Nil(t, err)
-		assert.EqualValues(t, verr.Message, "allowanceType is not correct")
+		assert.EqualValues(t, er.Message, "allowanceType is not correct")
 		assert.EqualValues(t, http.StatusBadRequest, res.StatusCode)
 
 	})

@@ -10,11 +10,13 @@ import (
 	"time"
 
 	"github.com/lordneng07/assessment-tax/handler"
+	"github.com/lordneng07/assessment-tax/service"
 )
 
 func main() {
 	e := handler.Echo()
-	h := handler.New()
+	ss := service.New()
+	h := handler.New(ss)
 
 	handler.SetApi(e, h)
 

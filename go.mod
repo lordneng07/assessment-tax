@@ -3,14 +3,19 @@ module github.com/lordneng07/assessment-tax
 go 1.21.9
 
 require (
+	github.com/go-playground/locales v0.14.1
+	github.com/go-playground/universal-translator v0.18.1
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/stretchr/testify v1.8.4
 )
 
+require github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/go-playground/validator/v10 v10.20.0
 	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

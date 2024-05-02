@@ -4,31 +4,29 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-playground/locales/en"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/labstack/echo"
-	service "github.com/lordneng07/assessment-tax/service/tax"
+	"github.com/lordneng07/assessment-tax/helper"
+	"github.com/lordneng07/assessment-tax/model"
+	"github.com/lordneng07/assessment-tax/service"
 )
 
 type (
 	TaxHandler interface {
-		Calculation(c echo.Context) error
-	}
-
-	Calculator interface {
-		Calculate() float64
+		Calculate(c echo.Context) error
 	}
 
 	taxHendler struct {
+		service.TaxLevelService
 	}
 
 	TaxRequest struct {
-		Income     float64         `json:"totalIncome"`
-		Wht        float64         `json:"wht"`
-		Allowances []AllowanceType `json:"allowances"`
-	}
-
-	TaxResponse struct {
-		Tax    float64 `json:"tax"`
-		Refund float64 `json:"taxRefund"`
+		TotalIncome *float64        `json:"totalIncome" validate:"required,gt=0"`
+		Wht         *float64        `json:"wht" validate:"required,number,gte=0" errormgs:"Invalid wht is required"`
+		Allowances  []AllowanceType `json:"allowances" validate:"required"`
 	}
 
 	AllowanceType struct {
@@ -41,6 +39,8 @@ type (
 	}
 )
 
+var uni *ut.UniversalTranslator
+
 func (h taxHendler) Calculation(c echo.Context) (err error) {
 	req := TaxRequest{}
 
@@ -48,25 +48,28 @@ func (h taxHendler) Calculation(c echo.Context) (err error) {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
-	isError, verr := req.validate()
+	en := en.New()
+	uni = ut.New(en, en)
+	trans, _ := uni.GetTranslator("en")
+	validate := validator.New()
+	en_translations.RegisterDefaultTranslations(validate, trans)
+	errValidate := validate.Struct(req)
+
+	if errValidate != nil {
+		errs := translateError(errValidate, trans)
+		return c.JSON(http.StatusBadRequest, errs)
+	}
+
+	isError, er := req.validate()
 
 	if isError {
-		return c.JSON(http.StatusBadRequest, verr)
+		return c.JSON(http.StatusBadRequest, er)
 	}
 
-	return c.JSON(http.StatusOK, NewTaxResponse(req))
-}
-
-func NewTaxResponse(tr TaxRequest) TaxResponse {
-
-	return TaxResponse{
-		Tax:    service.NewTaxService(tr.Income, tr.Wht, tr.Allowance()).TaxNet(),
-		Refund: service.NewTaxService(tr.Income, tr.Wht, tr.Allowance()).Refund(),
-	}
+	return c.JSON(http.StatusOK, h.NewTax(*req.TotalIncome, *req.Wht, req.Allowance()))
 }
 
 func (tr TaxRequest) validate() (bool, Err) {
-
 	for _, al := range tr.Allowances {
 		if !strings.Contains(al.AllowanceType, "donation") && !strings.Contains(al.AllowanceType, "k-receipt") {
 			return true, Err{
@@ -81,7 +84,6 @@ func (tr TaxRequest) validate() (bool, Err) {
 }
 
 func (tr TaxRequest) Allowance() float64 {
-
 	return tr.donation()
 }
 
@@ -99,4 +101,18 @@ func (tr TaxRequest) donation() float64 {
 	}
 
 	return donate
+}
+
+func translateError(err error, trans ut.Translator) (errs []model.ApiErrorResponse) {
+	if err == nil {
+		return nil
+	}
+	validatorErrs := err.(validator.ValidationErrors)
+	out := make([]model.ApiErrorResponse, len(validatorErrs))
+	for i, e := range validatorErrs {
+		translatedErr := e.Translate(trans)
+		translatedErr = strings.ReplaceAll(translatedErr, e.Field(), helper.CamelCase(e.Field()))
+		out[i] = model.ApiErrorResponse{Field: helper.CamelCase(e.Field()), Msg: translatedErr}
+	}
+	return out
 }

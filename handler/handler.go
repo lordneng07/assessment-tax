@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo"
+	"github.com/lordneng07/assessment-tax/service"
 )
 
 type Handler struct {
@@ -15,9 +16,9 @@ type Err struct {
 	Message string `json:"message"`
 }
 
-func New() *Handler {
+func New(s *service.Service) *Handler {
 	return &Handler{
-		TaxHandler: &taxHendler{},
+		TaxHandler: &taxHendler{s.TaxLevel},
 	}
 }
 
